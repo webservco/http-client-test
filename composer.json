@@ -23,7 +23,7 @@
         "webservco"
     ],
     "license" : "MIT",
-    "name" : "webservco/component-skeleton",
+    "name" : "webservco/http-client-test",
     "require": {
         "php" : "^8.3"
     },
