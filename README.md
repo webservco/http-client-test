@@ -1,6 +1,6 @@
 # webservco/http-client-test
 
-Rests for the `webservco/http-client` project.
+Tests for the `webservco/http-client` project.
 
 Separate project in order to avoid adding unneeded dependencies to the library project.
 
