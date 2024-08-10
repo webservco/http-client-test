@@ -11,7 +11,7 @@ use WebServCo\Http\Client\Service\PSR18\HttpClient;
 use function sprintf;
 
 #[CoversClass(HttpClient::class)]
-final class Release1Test extends AbstractDiscogsTestClass
+final class Discogs1ReleaseTest extends AbstractDiscogsTestClass
 {
     public function testGetStatusCode(): void
     {
