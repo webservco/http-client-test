@@ -6,7 +6,7 @@ namespace Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Httpbin\Redi
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Client\ClientExceptionInterface;
-use Tests\Unit\Assets\Test\AbstractHttpbinTestClass;
+use Tests\Unit\Assets\Test\Httpbin\AbstractHttpbinTestClass;
 use WebServCo\Http\Client\Service\PSR18\HttpClient;
 
 use function sprintf;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Httpbin\HttpMethods;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use Tests\Unit\Assets\Test\AbstractHttpbinTestClass;
+use Tests\Unit\Assets\Test\Httpbin\AbstractHttpbinTestClass;
 use WebServCo\Http\Client\Service\PSR18\HttpClient;
 
 use function sprintf;

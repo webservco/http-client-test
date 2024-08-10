@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Assets\Test;
+namespace Tests\Unit\Assets\Test\Httpbin;
 
 use Psr\Http\Message\RequestInterface;
 use Tests\Unit\Assets\Factory\Request\Httpbin\HttpbinRequestFactory;
+use Tests\Unit\Assets\Test\AbstractTestClass;
 
 abstract class AbstractHttpbinTestClass extends AbstractTestClass
 {
