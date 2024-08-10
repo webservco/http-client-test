@@ -19,7 +19,7 @@ final class DiscogsMulti11ReleasesTest extends AbstractDiscogsTestClass
         $lapTimer->start();
         $lapTimer->lap('begin');
 
-        $logger = $this->createLogger(__FUNCTION__);
+        $logger = $this->createLogger(__METHOD__);
 
         $curlMultiService = $this->createCurlMultiService(3);
 
@@ -27,7 +27,7 @@ final class DiscogsMulti11ReleasesTest extends AbstractDiscogsTestClass
         $curlHandleIdentifiers = [];
 
         // Iterate list
-        foreach (self::RELEASE_IDS as $releaseId) {
+        foreach (self::RELEASE_IDS_11 as $releaseId) {
             // Create request.
             $request = $this->createGetRequest(sprintf('%sreleases/%d', self::DISCOGS_API_URL, $releaseId));
             // Create handle and add it's identifier to the list.
