@@ -29,6 +29,7 @@ final class RedirectTest extends AbstractHttpbinTestClass
         }
 
         self::assertSame(200, $statusCode);
+        // Test that only the last headers are kept when redirects are involved.
         self::assertEquals('application/json', $responseContentType);
     }
 }
