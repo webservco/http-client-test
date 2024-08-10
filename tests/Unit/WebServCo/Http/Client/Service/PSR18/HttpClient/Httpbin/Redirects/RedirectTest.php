@@ -14,22 +14,25 @@ use function sprintf;
 #[CoversClass(HttpClient::class)]
 final class RedirectTest extends AbstractHttpbinTestClass
 {
-    public function testRedirect(): void
+    /**
+     * Test that only the last headers are kept when redirects are involved.
+     */
+    public function testRedirectContentType(): void
     {
-        $httpClient = $this->createHttpClient(1);
-        $request = $this->createGetRequest(sprintf('%sredirect/%d', self::BASE_URL, 3));
-
         try {
-            $response = $httpClient->sendRequest($request);
-            $statusCode = $response->getStatusCode();
+            $response = $this->getGetResponse(1, sprintf('%sredirect/%d', self::BASE_URL, 3));
             $responseContentType = $response->getHeaderLine('content-type');
-        } catch (ClientExceptionInterface $exception) {
-            $statusCode = $exception->getCode();
+        } catch (ClientExceptionInterface) {
             $responseContentType = null;
         }
 
-        self::assertSame(200, $statusCode);
-        // Test that only the last headers are kept when redirects are involved.
         self::assertEquals('application/json', $responseContentType);
+    }
+
+    public function testRedirectStatusCode(): void
+    {
+        $statusCode = $this->getGetResponseStatusCodeByUrl(1, sprintf('%sredirect/%d', self::BASE_URL, 3));
+
+        self::assertSame(200, $statusCode);
     }
 }
