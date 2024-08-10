@@ -10,13 +10,11 @@ use WebServCo\Http\Client\Service\cURL\CurlService;
 use WebServCo\Http\Factory\Message\Response\ResponseFactory;
 use WebServCo\Http\Factory\Message\Stream\StreamFactory;
 use WebServCo\Http\Service\Message\Response\StatusCodeService;
-use WebServCo\Log\Factory\ContextFileLoggerFactory;
-
-use function sprintf;
+use WebServCo\Log\Contract\LoggerFactoryInterface;
 
 final class CurlServiceFactory
 {
-    public function __construct(private string $projectPath)
+    public function __construct(private LoggerFactoryInterface $loggerFactory)
     {
     }
 
@@ -26,7 +24,7 @@ final class CurlServiceFactory
 
         return new CurlService(
             new CurlServiceConfiguration(true, $timeout),
-            new ContextFileLoggerFactory(sprintf('%svar/log', $this->projectPath)),
+            $this->loggerFactory,
             new ResponseFactory(new StatusCodeService(), $streamFactory),
             $streamFactory,
         );
