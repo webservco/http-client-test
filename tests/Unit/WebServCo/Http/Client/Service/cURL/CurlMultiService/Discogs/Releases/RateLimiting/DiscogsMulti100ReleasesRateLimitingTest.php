@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlMultiService\Discogs\Releases\RateLimiting;
 
+use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
 use WebServCo\Http\Client\Service\cURL\CurlMultiService;
 
 use function array_chunk;
+use function array_key_exists;
 use function array_shift;
 use function array_splice;
 use function array_unshift;
@@ -48,7 +50,7 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
         $releaseIds = $this->getReleaseIds(100);
         $firstReleaseId = array_shift($releaseIds);
 
-        // Note: now $releaseIds contains less items.
+        // Now $releaseIds contains less items.
 
         // Initialize rate limit values.
         $ratelimitTotal = $ratelimitRemaining = 0;
@@ -81,48 +83,79 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
         self::assertSame(25, $ratelimitRemaining);
 
         /**
+         * Create requests.
+         * Do this before starting to work on rate limit because $releaseIds array will be modified.
+         */
+
+        $logger->debug('Creating requests.');
+
+        foreach ($releaseIds as $releaseId) {
+            // Create request.
+            $request = $this->createGetRequest(sprintf('%sreleases/%d', self::DISCOGS_API_URL, $releaseId));
+            // Create handle and add it's identifier to the list.
+            $handleIdentifier = $curlMultiService->createHandle($request);
+            $curlHandleIdentifiers[$releaseId] = $handleIdentifier;
+        }
+
+        $logger->debug('Executing sessions.');
+
+        // Execute sessions.
+        $curlMultiService->executeSessions();
+
+        /**
+         * Rate Limiting.
+         *
          * We will split the items in chunks as follows:
          * - first chunk: as many items as the remaining rate limit
          * - all other chunks: as many items as the total rate limit
          */
 
-        // Process first chunk
+        // Process first chunk. "Numerical keys in array are not preserved."
         $firstChunk = array_splice($releaseIds, 0, $ratelimitRemaining);
 
         // Note: now $releaseIds contains less items.
 
         // All other chunks: Split the remaining array by total rate limit
-        $chunks = array_chunk($releaseIds, $ratelimitTotal);
+        // preserve_keys defaults to false
+        $chunks = array_chunk($releaseIds, $ratelimitTotal, false);
 
         // From this point on $releaseIds is not used any more.
 
         // Add first chunk at the beginning of the chunks array.
+        // "All numerical array keys will be modified to start counting from zero while literal keys won't be changed."
         array_unshift($chunks, $firstChunk);
 
         // Now $chunks contains all the data split by rate limiting.
 
-        $logger->debug('RL: processing chunks.');
+        $logger->debug('Processing responses in chunks.');
 
-        // Iterate chunks
         foreach ($chunks as $index => $chunk) {
             $logger->debug(sprintf('RL: processing chunk at index %d.', $index));
 
-
-            $logger->debug('Creating requests.');
-
             // Each chunk contains a list of items to process.
             foreach ($chunk as $releaseId) {
-                // Create request.
-                $request = $this->createGetRequest(sprintf('%sreleases/%d', self::DISCOGS_API_URL, $releaseId));
-                // Create handle and add it's identifier to the list.
-                $handleIdentifier = $curlMultiService->createHandle($request);
-                $curlHandleIdentifiers[$releaseId] = $handleIdentifier;
+                // Get response.
+                $logger->debug(sprintf('Get response: r %d.', $releaseId));
+
+                if (!array_key_exists($releaseId, $curlHandleIdentifiers)) {
+                    throw new OutOfBoundsException(sprintf('No cURL handle for release %d.', $releaseId));
+                }
+
+                try {
+                    $response = $curlMultiService->getResponse($curlHandleIdentifiers[$releaseId]);
+
+                    $statusCode = $response->getStatusCode();
+                } catch (ClientExceptionInterface $exception) {
+                    $statusCode = $exception->getCode();
+                }
+
+                $logger->debug(sprintf('r %d, status: %d', $releaseId, $statusCode));
+
+                $lapTimer->lap(sprintf('r %d', $releaseId));
+
+                // Validate response.
+                self::assertSame(200, $statusCode);
             }
-
-            $logger->debug('Executing sessions.');
-
-            // Execute sessions.
-            $curlMultiService->executeSessions();
 
             // Check rate limits.
             $logger->debug('Handling rate limiting.');
@@ -151,27 +184,6 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
             $difference = 60 - $elapsedTime;
             $logger->debug(sprintf('RL: elapsedTime under cutoff, waiting: %d seconds.', $difference));
             sleep($difference);
-        }
-
-        $logger->debug('Processing responses.');
-
-        // Iterate responses
-        foreach ($curlHandleIdentifiers as $releaseId => $handleIdentifier) {
-            try {
-                // Not using getMultiResponseStatusCode because we need the response
-                $response = $curlMultiService->getResponse($handleIdentifier);
-
-                $statusCode = $response->getStatusCode();
-            } catch (ClientExceptionInterface $exception) {
-                $statusCode = $exception->getCode();
-            }
-
-            $logger->debug(sprintf('r %d, status: %d', $releaseId, $statusCode));
-
-            $lapTimer->lap(sprintf('r %d', $releaseId));
-
-            // Validate response.
-            self::assertSame(200, $statusCode);
         }
 
         $logger->debug('Cleanup.');
