@@ -15,6 +15,7 @@ use function array_key_exists;
 use function array_shift;
 use function array_splice;
 use function array_unshift;
+use function count;
 use function sleep;
 use function sprintf;
 use function time;
@@ -22,11 +23,13 @@ use function time;
 /**
  * @todo work
  * Test Multi system with Discogs rate limiting.
- * Target: use 100 releases and process all (test should not fail) despite limit of 25.
+ * Target: use 100 releases and process all (test should not fail) despite limit of 60.
  */
 #[CoversClass(CurlMultiService::class)]
-final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestClass
+final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTestClass
 {
+    private const int TIMEOUT = 5;
+
     /**
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
@@ -38,13 +41,13 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
         $lapTimer->start();
         $lapTimer->lap('begin');
 
-        $logger = $this->createLogger(__METHOD__);
+        $logger = $this->createLogger(__FUNCTION__);
         $logger->debug(__METHOD__);
 
-        $curlMultiService = $this->createCurlMultiService(3);
+        $curlMultiService = $this->createCurlMultiService(self::TIMEOUT);
 
         // Get list of release ids
-        $releaseIds = $this->getReleaseIds(100);
+        $releaseIds = $this->getReleaseIds(1000);
         $firstReleaseId = array_shift($releaseIds);
 
         // Now $releaseIds contains less items.
@@ -59,7 +62,10 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
         // Execute first request separately, in order to check rate limiting.
         try {
             $logger->debug('Get the first release.');
-            $response = $this->getGetResponse(3, sprintf('%sreleases/%d', self::DISCOGS_API_URL, $firstReleaseId));
+            $response = $this->getGetResponse(
+                self::TIMEOUT,
+                sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $firstReleaseId),
+            );
             $statusCode = $response->getStatusCode();
             // Rate limiting check for first request (1).
             if ($statusCode === 429) {
@@ -76,7 +82,10 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
                 $logger->debug('Response code is 429, waiting 1 minute.');
                 sleep(60);
                 $logger->debug('Trying again to get the first release.');
-                $response = $this->getGetResponse(3, sprintf('%sreleases/%d', self::DISCOGS_API_URL, $firstReleaseId));
+                $response = $this->getGetResponse(
+                    3,
+                    sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $firstReleaseId),
+                );
                 $statusCode = $response->getStatusCode();
             }
 
@@ -84,6 +93,7 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
             $ratelimitTotal = (int) $response->getHeaderLine('x-discogs-ratelimit');
             $ratelimitRemaining = (int) $response->getHeaderLine('x-discogs-ratelimit-remaining');
         } catch (ClientExceptionInterface $exception) {
+            $logger->error($exception->getMessage(), ['exception' => $exception]);
             $statusCode = $exception->getCode();
         }
 
@@ -98,8 +108,8 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
         // Rate limiting check for first request (2).
         /**
          * Situation: when making the first request, no other requests were made.
-         * the limit is "25" (after making a request),
-         * so in reality we can still make "24" requests, despite Discogs saying "25".
+         * the limit is "60" (after making a request),
+         * so in reality we can still make "59" requests, despite Discogs saying "60".
          *
          * Adjust rate limits: sacrifice 1 request to make sure all is OK
          */
@@ -170,13 +180,14 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
         foreach ($chunks as $index => $chunk) {
             // Each chunk contains a list of items to process.
 
-            $logger->debug(sprintf('Creating requests; chunk %d.', $index));
+            $logger->debug(sprintf('Creating requests; chunk %d, %d items.', $index, count($chunk)));
             foreach ($chunk as $releaseId) {
                 // Note: requests are executed din parallel, not one by one based on our release list.
 
                 // Create request.
-                $request = $this->createGetRequest(sprintf('%sreleases/%d', self::DISCOGS_API_URL, $releaseId));
+                $request = $this->createGetRequest(sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $releaseId));
                 // Create handle and add it's identifier to the list.
+                /** @todo investigate: 429 despite waiting 61 seconds; maybe request is already sent at this point? */
                 $handleIdentifier = $curlMultiService->createHandle($request);
                 $curlHandleIdentifiers[$releaseId] = $handleIdentifier;
             }
@@ -195,15 +206,26 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
                     throw new OutOfBoundsException(sprintf('No cURL handle for release %d.', $releaseId));
                 }
 
+                $ratelimitUsed = $ratelimitRemaining = null;
                 try {
                     $response = $curlMultiService->getResponse($curlHandleIdentifiers[$releaseId]);
 
                     $statusCode = $response->getStatusCode();
+                    // Get rate limit values
+                    $ratelimitUsed = (int) $response->getHeaderLine('x-discogs-ratelimit-used');
+                    $ratelimitRemaining = (int) $response->getHeaderLine('x-discogs-ratelimit-remaining');
                 } catch (ClientExceptionInterface $exception) {
+                    $logger->error($exception->getMessage(), ['exception' => $exception]);
                     $statusCode = $exception->getCode();
                 }
 
                 $logger->debug(sprintf('Release %d: status: %d', $releaseId, $statusCode));
+                if ($ratelimitUsed !== null) {
+                    $logger->debug(sprintf('Release %d: ratelimit-used: %d', $releaseId, $ratelimitUsed));
+                }
+                if ($ratelimitRemaining !== null) {
+                    $logger->debug(sprintf('Release %d: ratelimit-remaining: %d', $releaseId, $ratelimitRemaining));
+                }
 
                 $lapTimer->lap(sprintf('Release %d', $releaseId));
 
@@ -244,28 +266,9 @@ final class DiscogsMulti100ReleasesRateLimitingTest extends AbstractDiscogsTestC
                 continue;
             }
 
-            /**
-             * @todo $waitingTime not working, still get 429
-             * start: 16.51.25
-             * chunk1: 16.51.26
-             * chunk2: 16.52.26 429, despite 1 minute passed
-             * @todo no need to try the ceil stuff, even considering start of minute, 60 seconds still passed
-             * @todo ? check individual responses and get the lowest value remaining? then what to do with it?
-             * @todo - use shared memory for rate limiting? how to know which is the "last" value?
-             * @todo maybe ask on discogs: rate limit by time estimate (run in parallel so can not check individual responses)
-             * @todo ~~last resort~~: wait at least 1 minute (tested, also that gives 429!!!)
-             * - chunk 0 finished 17.15.23,- chunk 1 start 17.16.24 => 429 => WTF
-             * - 171522.197247 remaining 1, so should have been ok...
-             *
-             * @todo **next resort** try authenticated with "at least 1 minute"
-             *
-             * @todo nextafterlastresort: keep track of 429, retry again?
-             */
-
             // Less than cutoff time has passed, we need to wait the difference.
             $waitingTime = 60 - $elapsedTime;
             $logger->debug(sprintf('RL: waitingTime: %d', $waitingTime));
-            /** @todo test, wait at least one minute, still not working... */ $waitingTime = 60; /** @todo test .................................................................... */
             // Adjust
             $waitingTime += 1;
 
