@@ -5,19 +5,59 @@ declare(strict_types=1);
 namespace Tests\Unit\Assets\Test\Discogs;
 
 use Psr\Http\Message\RequestInterface;
-use Tests\Unit\Assets\Factory\Request\Discogs\NonAuthenticatedRequestFactory;
+use Tests\Unit\Assets\Factory\Request\Discogs\AuthenticatedRequestFactory;
 use Tests\Unit\Assets\Test\AbstractTestClass;
+use WebServCo\Configuration\Contract\ConfigurationGetterInterface;
+use WebServCo\Configuration\Factory\ServerConfigurationGetterFactory;
+use WebServCo\Configuration\Service\ConfigurationFileProcessor;
+use WebServCo\Configuration\Service\IniServerConfigurationContainer;
+
+use function assert;
 
 abstract class AbstractDiscogsTestClass extends AbstractTestClass
 {
-    protected const string DISCOGS_API_URL = 'https://api.discogs.com/';
-
     protected const array RELEASE_IDS_11 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+    protected ?ConfigurationGetterInterface $configurationGetter = null;
+
+    private ?AuthenticatedRequestFactory $requestFactory = null;
 
     protected function createGetRequest(string $url): RequestInterface
     {
-        $requestFactory = new NonAuthenticatedRequestFactory();
+        assert($this->requestFactory instanceof AuthenticatedRequestFactory);
 
-        return $requestFactory->createGetRequest($url);
+        return $this->requestFactory->createGetRequest($url);
+    }
+
+    protected function getDiscogsApiUrl(): string
+    {
+        assert($this->configurationGetter instanceof ConfigurationGetterInterface);
+
+        return $this->configurationGetter->getString('DISCOGS_API_URL');
+    }
+
+    protected function setUp(): void
+    {
+        $projectPath = $this->getProjectPath();
+
+        // Configuration (set).
+        $configurationContainer = new IniServerConfigurationContainer();
+        $configurationFileProcessor = new ConfigurationFileProcessor(
+            $configurationContainer->getConfigurationDataProcessor(),
+            $configurationContainer->getConfigurationLoader(),
+            $configurationContainer->getConfigurationSetter(),
+        );
+        $configurationFileProcessor->processConfigurationFile($projectPath, 'config', '.env.ini');
+
+        // Configuration (get).
+        $configurationGetterFactory = new ServerConfigurationGetterFactory();
+        $this->configurationGetter = $configurationGetterFactory->createConfigurationGetter();
+
+        $this->requestFactory = new AuthenticatedRequestFactory($this->configurationGetter);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->requestFactory = null;
     }
 }

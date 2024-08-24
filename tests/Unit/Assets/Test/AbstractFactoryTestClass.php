@@ -99,11 +99,16 @@ abstract class AbstractFactoryTestClass extends TestCase
     protected function getLoggerFactory(): LoggerFactoryInterface
     {
         if ($this->loggerFactory === null) {
-            $projectPath = realpath(__DIR__ . '/../../../../') . DIRECTORY_SEPARATOR;
+            $projectPath = $this->getProjectPath();
 
             $this->loggerFactory = new ContextFileLoggerFactory(sprintf('%svar/log', $projectPath));
         }
 
         return $this->loggerFactory;
+    }
+
+    protected function getProjectPath(): string
+    {
+        return realpath(__DIR__ . '/../../../../') . DIRECTORY_SEPARATOR;
     }
 }
