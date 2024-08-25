@@ -187,9 +187,9 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                 // Create request.
                 $request = $this->createGetRequest(sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $releaseId));
                 // Create handle and add it's identifier to the list.
-                /** @todo investigate: 429 despite waiting 61 seconds; maybe request is already sent at this point? */
                 $handleIdentifier = $curlMultiService->createHandle($request);
                 $curlHandleIdentifiers[$releaseId] = $handleIdentifier;
+                $logger->debug(sprintf('Created handle: release %d, handle %s.', $releaseId, $handleIdentifier));
             }
 
             $logger->debug(sprintf('Executing sessions; chunk %d.', $index));
@@ -236,8 +236,8 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                 /** Response processing would go here. */
             }
 
-            // Cleanup. After this the service can be re-used, going through all the steps.
-            $curlMultiService->cleanup();
+            // Reset. After this the service can be re-used, going through all the steps.
+            $curlMultiService->reset();
 
             $curlHandleIdentifiers = [];
 

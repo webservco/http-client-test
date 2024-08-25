@@ -24,7 +24,7 @@ final class DiscogsPsr11ReleasesTest extends AbstractDiscogsTestClass
         foreach (self::RELEASE_IDS_11 as $releaseId) {
             $statusCode = $this->getGetResponseStatusCodeByUrl(
                 3,
-                sprintf('%sreleases/%d', self::DISCOGS_API_URL, $releaseId),
+                sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $releaseId),
             );
             $lapTimer->lap(sprintf('r %d', $releaseId));
 

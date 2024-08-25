@@ -15,7 +15,7 @@ final class Discogs1ReleaseTest extends AbstractDiscogsTestClass
 {
     public function testGetStatusCode(): void
     {
-        $statusCode = $this->getGetResponseStatusCodeByUrl(1, sprintf('%sreleases/%d', self::DISCOGS_API_URL, 1));
+        $statusCode = $this->getGetResponseStatusCodeByUrl(1, sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), 1));
 
         self::assertSame(200, $statusCode);
     }
