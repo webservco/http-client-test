@@ -29,7 +29,12 @@ abstract class AbstractTestClass extends AbstractFactoryTestClass
 
             return $response->getStatusCode();
         } catch (ClientExceptionInterface $exception) {
-            return $exception->getCode();
+            /**
+             * Psalm error "Redundant cast to int"
+             *
+             * @psalm-suppress RedundantCast
+             */
+            return (int) $exception->getCode();
         }
     }
 
@@ -42,7 +47,12 @@ abstract class AbstractTestClass extends AbstractFactoryTestClass
 
             return $response->getStatusCode();
         } catch (ClientExceptionInterface $exception) {
-            return $exception->getCode();
+            /**
+             * Psalm error "Redundant cast to int"
+             *
+             * @psalm-suppress RedundantCast
+             */
+            return (int) $exception->getCode();
         }
     }
 }
