@@ -8,6 +8,7 @@ use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
+use UnexpectedValueException;
 use WebServCo\Http\Client\Service\cURL\CurlMultiService;
 
 use function array_chunk;
@@ -16,6 +17,7 @@ use function array_shift;
 use function array_splice;
 use function array_unshift;
 use function count;
+use function is_int;
 use function sleep;
 use function sprintf;
 use function time;
@@ -51,8 +53,11 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
         // Get list of release ids
         $releaseIds = $this->getReleaseIds(1000);
         $firstReleaseId = array_shift($releaseIds);
+        if (!is_int($firstReleaseId)) {
+            throw new UnexpectedValueException('Invalid release id.');
+        }
 
-        // Now $releaseIds contains less items.
+        // Now $releaseIds contains fewer items.
 
         // Initialize rate limit values.
         $ratelimitTotal = $ratelimitRemaining = 0;
