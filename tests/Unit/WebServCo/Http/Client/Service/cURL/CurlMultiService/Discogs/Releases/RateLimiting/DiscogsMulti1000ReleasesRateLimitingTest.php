@@ -33,7 +33,9 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
     /**
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function testReleasesRateLimiting(): void
     {
