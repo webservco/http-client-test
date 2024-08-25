@@ -13,6 +13,9 @@ use function sprintf;
 #[CoversClass(CurlMultiService::class)]
 final class DiscogsMulti11ReleasesTest extends AbstractDiscogsTestClass
 {
+    /**
+     * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
+     */
     public function test11ReleasesStatusCode(): void
     {
         $lapTimer = $this->createLapTimer();
@@ -29,7 +32,7 @@ final class DiscogsMulti11ReleasesTest extends AbstractDiscogsTestClass
         // Iterate list
         foreach (self::RELEASE_IDS_11 as $releaseId) {
             // Create request.
-            $request = $this->createGetRequest(sprintf('%sreleases/%d', self::DISCOGS_API_URL, $releaseId));
+            $request = $this->createGetRequest(sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $releaseId));
             // Create handle and add it's identifier to the list.
             $handleIdentifier = $curlMultiService->createHandle($request);
             $curlHandleIdentifiers[$releaseId] = $handleIdentifier;
@@ -46,11 +49,12 @@ final class DiscogsMulti11ReleasesTest extends AbstractDiscogsTestClass
             self::assertSame(200, $statusCode);
         }
 
-        // Cleanup. After this the service can be re-used, going through all the steps.
-        $curlMultiService->cleanup();
+        // Reset. After this the service can be re-used, going through all the steps.
+        $curlMultiService->reset();
 
         $lapTimer->lap('end');
 
         $logger->info('Lap stats', $lapTimer->getStatistics());
     }
+    // @phpcs:enable
 }
