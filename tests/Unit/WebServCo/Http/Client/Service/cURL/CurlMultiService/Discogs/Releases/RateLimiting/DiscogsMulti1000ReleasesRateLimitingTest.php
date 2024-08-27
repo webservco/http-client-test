@@ -30,6 +30,12 @@ use function time;
 #[CoversClass(CurlMultiService::class)]
 final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTestClass
 {
+    /**
+     * Cutoff time in seconds.
+     * Should be fixed to 60, but use constant to be able to easily test different values.
+     */
+    private const int CUTOFF_TIME = 60;
+
     private const int TIMEOUT = 5;
 
     /**
@@ -86,8 +92,8 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                  *
                  * In this case we can wait 1 minute and try again from the start
                  */
-                $logger->debug('Response code is 429, waiting 1 minute.');
-                sleep(60);
+                $logger->debug(sprintf('Response code is 429, waiting %d seconds.', self::CUTOFF_TIME));
+                sleep(self::CUTOFF_TIME);
                 $logger->debug('Trying again to get the first release.');
                 $response = $this->getGetResponse(
                     3,
@@ -146,7 +152,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             if ($ratelimitRemaining === 0 || $ratelimitRemaining === 1) {
                 // Since the requests were made externally, we have no way to measure the elapsed time,
                 // so we need to wait a full minute.
-                sleep(60);
+                sleep(self::CUTOFF_TIME);
             }
         }
 
@@ -267,7 +273,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             $logger->debug(sprintf('RL: updated timeRateLimit: %d', $timeRateLimit));
 
             // We can only call the API again after 1 minute has passed.
-            if ($elapsedTime >= 60) {
+            if ($elapsedTime >= self::CUTOFF_TIME) {
                 $logger->debug('RL: elapsedTime more than cutoff, nothing to do.');
 
                 // More than cutoff time has passed, nothing else to do here.
@@ -275,7 +281,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             }
 
             // Less than cutoff time has passed, we need to wait the difference.
-            $waitingTime = 60 - $elapsedTime;
+            $waitingTime = self::CUTOFF_TIME - $elapsedTime;
             $logger->debug(sprintf('RL: waitingTime: %d', $waitingTime));
             // Adjust
             $waitingTime += 1;
