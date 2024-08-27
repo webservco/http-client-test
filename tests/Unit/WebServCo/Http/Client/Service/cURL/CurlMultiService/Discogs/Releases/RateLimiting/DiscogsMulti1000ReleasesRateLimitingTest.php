@@ -64,7 +64,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
         // Note the start time.
         $timeRateLimit = time();
-        $logger->debug(sprintf('RL: timeRateLimit: %d', $timeRateLimit));
+        $logger->debug(sprintf('RL: initial timeRateLimit: %d', $timeRateLimit));
 
         // Execute first request separately, in order to check rate limiting.
         try {
@@ -255,8 +255,8 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
             // Get current time.
             $timeCurrentChunk = time();
+            $logger->debug(sprintf('RL: last timeRateLimit: %d', $timeRateLimit));
             $logger->debug(sprintf('RL: timeCurrentChunk: %d', $timeCurrentChunk));
-            $logger->debug(sprintf('RL: timeRateLimit: %d', $timeRateLimit));
 
             // Check how many seconds have passed since last chunk.
             $elapsedTime = $timeCurrentChunk - $timeRateLimit;
@@ -264,6 +264,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
             // Set new time for the next chunk.
             $timeRateLimit = time();
+            $logger->debug(sprintf('RL: updated timeRateLimit: %d', $timeRateLimit));
 
             // We can only call the API again after 1 minute has passed.
             if ($elapsedTime >= 60) {
