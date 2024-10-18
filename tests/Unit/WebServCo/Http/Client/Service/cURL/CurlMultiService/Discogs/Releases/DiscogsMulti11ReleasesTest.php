@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlMultiService\Discogs\Releases;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DependsOnClass;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
+use Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Discogs\Release\Discogs1ReleaseTest;
+use Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Discogs\Releases\DiscogsPsr11ReleasesTest;
 use WebServCo\Http\Client\Service\cURL\CurlMultiService;
 
 use function sprintf;
@@ -16,6 +19,8 @@ final class DiscogsMulti11ReleasesTest extends AbstractDiscogsTestClass
     /**
      * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
      */
+    #[DependsOnClass(DiscogsPsr11ReleasesTest::class)]
+    #[DependsOnClass(Discogs1ReleaseTest::class)]
     public function test11ReleasesStatusCode(): void
     {
         $lapTimer = $this->createLapTimer();
