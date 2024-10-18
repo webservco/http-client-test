@@ -6,8 +6,10 @@ namespace Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlMultiService\Discogs
 
 use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DependsOnClass;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
+use Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlMultiService\Discogs\Releases\DiscogsMulti11ReleasesTest;
 use UnexpectedValueException;
 use WebServCo\Http\Client\Service\cURL\CurlMultiService;
 
@@ -34,9 +36,11 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
      * Cutoff time in seconds.
      * Should be fixed to 60, but use constant to be able to easily test different values.
      */
-    private const int CUTOFF_TIME = 90;
+    private const int CUTOFF_TIME = 60;
 
     private const int TIMEOUT = 30;
+
+    private const int WAITING_TIME_ADJUSTMENT = 1;
 
     /**
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
@@ -45,6 +49,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
+    #[DependsOnClass(DiscogsMulti11ReleasesTest::class)]
     public function testReleasesRateLimiting(): void
     {
         $lapTimer = $this->createLapTimer();
@@ -195,6 +200,28 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
         foreach ($chunks as $index => $chunk) {
             // Each chunk contains a list of items to process.
 
+            $timeStartCurrentChunk = time();
+            $logger->debug(sprintf('RL: last timeRateLimit: %d', $timeRateLimit));
+            $logger->debug(sprintf('RL: timeStartCurrentChunk (%d): %d', $index, $timeStartCurrentChunk));
+
+            // Check how many seconds have passed since last chunk processing.
+            $elapsedTime = $timeStartCurrentChunk - $timeRateLimit;
+            $logger->debug(sprintf('RL: elapsedTime since last chunk processing: %d', $elapsedTime));
+
+            // We can only call the API again after enough time has passed.
+            // Check elapsed time, but only if not first chunk (nothing to wait after).
+            if ($index > 0 && $elapsedTime < self::CUTOFF_TIME) {
+                // Less than cutoff time has passed, we need to wait the difference.
+                $waitingTime = self::CUTOFF_TIME - $elapsedTime;
+                $logger->debug(sprintf('RL: waitingTime: %d', $waitingTime));
+                // Adjust
+                $waitingTime += self::WAITING_TIME_ADJUSTMENT;
+
+                $logger->debug(sprintf('RL: waitingTime (adjusted): %d', $waitingTime));
+                $logger->debug(sprintf('RL: elapsedTime under cutoff, waiting: %d seconds.', $waitingTime));
+                sleep($waitingTime);
+            }
+
             $logger->debug(sprintf('Creating requests; chunk %d, %d items.', $index, count($chunk)));
             foreach ($chunk as $releaseId) {
                 // Note: requests are executed in parallel, not one by one based on our release list.
@@ -262,35 +289,12 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             $logger->debug(sprintf('Handling rate limiting; chunk %d.', $index));
 
             // Get current time.
-            $timeCurrentChunk = time();
-            $logger->debug(sprintf('RL: last timeRateLimit: %d', $timeRateLimit));
-            $logger->debug(sprintf('RL: timeCurrentChunk (%d): %d', $index, $timeCurrentChunk));
-
-            // Check how many seconds have passed since last chunk.
-            $elapsedTime = $timeCurrentChunk - $timeRateLimit;
-            $logger->debug(sprintf('RL: elapsedTime: %d', $elapsedTime));
+            $timeEndCurrentChunk = time();
+            $logger->debug(sprintf('RL: timeEndCurrentChunk (%d): %d', $index, $timeEndCurrentChunk));
 
             // Set new time for the next chunk.
             $timeRateLimit = time();
             $logger->debug(sprintf('RL: updated timeRateLimit after chunk %d: %d', $index, $timeRateLimit));
-
-            // We can only call the API again after 1 minute has passed.
-            if ($elapsedTime >= self::CUTOFF_TIME) {
-                $logger->debug('RL: elapsedTime more than cutoff, nothing to do.');
-
-                // More than cutoff time has passed, nothing else to do here.
-                continue;
-            }
-
-            // Less than cutoff time has passed, we need to wait the difference.
-            $waitingTime = self::CUTOFF_TIME - $elapsedTime;
-            $logger->debug(sprintf('RL: waitingTime: %d', $waitingTime));
-            // Adjust
-            $waitingTime += 1;
-
-            $logger->debug(sprintf('RL: waitingTime (adjusted): %d', $waitingTime));
-            $logger->debug(sprintf('RL: elapsedTime under cutoff, waiting: %d seconds.', $waitingTime));
-            sleep($waitingTime);
 
             $lapTimer->lap(sprintf('chunk %d', $index));
         }
