@@ -34,9 +34,9 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
      * Cutoff time in seconds.
      * Should be fixed to 60, but use constant to be able to easily test different values.
      */
-    private const int CUTOFF_TIME = 60;
+    private const int CUTOFF_TIME = 90;
 
-    private const int TIMEOUT = 5;
+    private const int TIMEOUT = 30;
 
     /**
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
@@ -95,6 +95,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                 $logger->debug(sprintf('Response code is 429, waiting %d seconds.', self::CUTOFF_TIME));
                 sleep(self::CUTOFF_TIME);
                 $logger->debug('Trying again to get the first release.');
+                /** @todo this should be a separate recursive function, with N number of tries. */
                 $response = $this->getGetResponse(
                     3,
                     sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $firstReleaseId),
@@ -152,6 +153,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             if ($ratelimitRemaining === 0 || $ratelimitRemaining === 1) {
                 // Since the requests were made externally, we have no way to measure the elapsed time,
                 // so we need to wait a full minute.
+                /** @todo this should be solved if using shared memory to keep track of limits and time elapsed */
                 sleep(self::CUTOFF_TIME);
             }
         }
@@ -195,7 +197,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
             $logger->debug(sprintf('Creating requests; chunk %d, %d items.', $index, count($chunk)));
             foreach ($chunk as $releaseId) {
-                // Note: requests are executed din parallel, not one by one based on our release list.
+                // Note: requests are executed in parallel, not one by one based on our release list.
 
                 // Create request.
                 $request = $this->createGetRequest(sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), $releaseId));
@@ -262,7 +264,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             // Get current time.
             $timeCurrentChunk = time();
             $logger->debug(sprintf('RL: last timeRateLimit: %d', $timeRateLimit));
-            $logger->debug(sprintf('RL: timeCurrentChunk: %d', $timeCurrentChunk));
+            $logger->debug(sprintf('RL: timeCurrentChunk (%d): %d', $index, $timeCurrentChunk));
 
             // Check how many seconds have passed since last chunk.
             $elapsedTime = $timeCurrentChunk - $timeRateLimit;
@@ -270,7 +272,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
             // Set new time for the next chunk.
             $timeRateLimit = time();
-            $logger->debug(sprintf('RL: updated timeRateLimit: %d', $timeRateLimit));
+            $logger->debug(sprintf('RL: updated timeRateLimit after chunk %d: %d', $index, $timeRateLimit));
 
             // We can only call the API again after 1 minute has passed.
             if ($elapsedTime >= self::CUTOFF_TIME) {
