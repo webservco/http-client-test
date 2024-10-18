@@ -75,7 +75,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
         // Note the start time.
         $timeRateLimit = time();
-        $logger->debug(sprintf('RL: initial timeRateLimit: %d', $timeRateLimit));
+        $logger->debug(sprintf('RL: initial timeRateLimit: %d.', $timeRateLimit));
 
         // Execute first request separately, in order to check rate limiting.
         try {
@@ -117,9 +117,9 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
         }
 
         // Log
-        $logger->debug(sprintf('R1: statusCode: %d', $statusCode));
-        $logger->debug(sprintf('RL: ratelimitTotal: %d', $ratelimitTotal));
-        $logger->debug(sprintf('RL: ratelimitRemaining: %d', $ratelimitRemaining));
+        $logger->debug(sprintf('R1: statusCode: %d.', $statusCode));
+        $logger->debug(sprintf('RL: ratelimitTotal: %d.', $ratelimitTotal));
+        $logger->debug(sprintf('RL: ratelimitRemaining: %d.', $ratelimitRemaining));
 
         // Validate first response.
         self::assertSame(200, $statusCode);
@@ -134,16 +134,16 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
          */
         $ratelimitTotal -= 1;
         $ratelimitRemaining -= 1;
-        $logger->debug(sprintf('RL: ratelimitTotal (adjusted): %d', $ratelimitTotal));
-        $logger->debug(sprintf('RL: ratelimitRemaining (adjusted): %d', $ratelimitRemaining));
+        $logger->debug(sprintf('RL: ratelimitTotal (adjusted): %d.', $ratelimitTotal));
+        $logger->debug(sprintf('RL: ratelimitRemaining (adjusted): %d.', $ratelimitRemaining));
 
         // Handle limits adjustment.
-        self::assertGreaterThanOrEqual(1, $ratelimitTotal, 'ratelimitTotal must be greater than 1');
+        self::assertGreaterThanOrEqual(1, $ratelimitTotal, 'ratelimitTotal must be greater than 1.');
         if ($ratelimitTotal < 1) {
             // This is needed for static analysis (PHPStan).
-            throw new OutOfBoundsException('ratelimitTotal must be greater than 1');
+            throw new OutOfBoundsException('ratelimitTotal must be greater than 1.');
         }
-        self::assertGreaterThanOrEqual(0, $ratelimitRemaining, 'ratelimitRemaining must be greater than 0');
+        self::assertGreaterThanOrEqual(0, $ratelimitRemaining, 'ratelimitRemaining must be greater than 0.');
 
         /**
          * Another situation: when making the first request, other requests were made.
@@ -183,7 +183,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
         // preserve_keys defaults to false
         $chunks = array_chunk($releaseIdsClone, $ratelimitTotal, false);
 
-        // From this point on $releaseIdsClone is not used any more.
+        // From this point on $releaseIdsClone is not used anymore.
         unset($releaseIdsClone);
 
         // Add first chunk at the beginning of the chunks array.
@@ -201,12 +201,12 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             // Each chunk contains a list of items to process.
 
             $timeStartCurrentChunk = time();
-            $logger->debug(sprintf('RL: last timeRateLimit: %d', $timeRateLimit));
-            $logger->debug(sprintf('RL: timeStartCurrentChunk (%d): %d', $index, $timeStartCurrentChunk));
+            $logger->debug(sprintf('RL: last timeRateLimit: %d.', $timeRateLimit));
+            $logger->debug(sprintf('RL: timeStartCurrentChunk (%d): %d.', $index, $timeStartCurrentChunk));
 
             // Check how many seconds have passed since last chunk processing.
             $elapsedTime = $timeStartCurrentChunk - $timeRateLimit;
-            $logger->debug(sprintf('RL: elapsedTime since last chunk processing: %d', $elapsedTime));
+            $logger->debug(sprintf('RL: elapsedTime since last processing: %d.', $elapsedTime));
 
             // We can only call the API again after enough time has passed.
             // Check elapsed time, but only if not first chunk (nothing to wait after).
@@ -217,10 +217,14 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                 // Adjust
                 $waitingTime += self::WAITING_TIME_ADJUSTMENT;
 
-                $logger->debug(sprintf('RL: waitingTime (adjusted): %d', $waitingTime));
+                $logger->debug(sprintf('RL: waitingTime (adjusted): %d.', $waitingTime));
                 $logger->debug(sprintf('RL: elapsedTime under cutoff, waiting: %d seconds.', $waitingTime));
                 sleep($waitingTime);
             }
+
+            // Set new time for the next chunk. This is the actual start time of the current chunk, after waiting.
+            $timeRateLimit = time();
+            $logger->debug(sprintf('RL: updated timeRateLimit after chunk %d: %d.', $index, $timeRateLimit));
 
             $logger->debug(sprintf('Creating requests; chunk %d, %d items.', $index, count($chunk)));
             foreach ($chunk as $releaseId) {
@@ -261,12 +265,12 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                     $statusCode = $exception->getCode();
                 }
 
-                $logger->debug(sprintf('Release %d: status: %d', $releaseId, $statusCode));
+                $logger->debug(sprintf('Release %d: status: %d.', $releaseId, $statusCode));
                 if ($ratelimitUsed !== null) {
-                    $logger->debug(sprintf('Release %d: ratelimit-used: %d', $releaseId, $ratelimitUsed));
+                    $logger->debug(sprintf('Release %d: ratelimit-used: %d.', $releaseId, $ratelimitUsed));
                 }
                 if ($ratelimitRemaining !== null) {
-                    $logger->debug(sprintf('Release %d: ratelimit-remaining: %d', $releaseId, $ratelimitRemaining));
+                    $logger->debug(sprintf('Release %d: ratelimit-remaining: %d.', $releaseId, $ratelimitRemaining));
                 }
 
                 $lapTimer->lap(sprintf('Release %d', $releaseId));
@@ -292,16 +296,12 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
             $timeEndCurrentChunk = time();
             $logger->debug(sprintf('RL: timeEndCurrentChunk (%d): %d', $index, $timeEndCurrentChunk));
 
-            // Set new time for the next chunk.
-            $timeRateLimit = time();
-            $logger->debug(sprintf('RL: updated timeRateLimit after chunk %d: %d', $index, $timeRateLimit));
-
             $lapTimer->lap(sprintf('chunk %d', $index));
         }
 
         $lapTimer->lap('end');
 
-        $logger->info('Lap stats', $lapTimer->getStatistics());
+        $logger->info('Lap stats.', $lapTimer->getStatistics());
     }
     // @phpcs:enable
 
