@@ -40,9 +40,34 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
     private const int TIMEOUT = 30;
 
-    private const int WAITING_TIME_ADJUSTMENT = 1;
+    private const int WAITING_TIME_ADJUSTMENT = 10;
 
     /**
+     * https://www.discogs.com/developers#page:home,header:home-rate-limiting
+     * Rate Limiting
+     *
+     * Requests are throttled by the server by source IP to 60 per minute for authenticated requests,
+     * and 25 per minute for unauthenticated requests, with some exceptions.
+     *
+     * Your application should identify itself to our servers via a unique user agent string
+     * in order to achieve the maximum number of requests per minute.
+     *
+     * Our rate limiting tracks your requests using a moving average over a 60 second window.
+     * If no requests are made in 60 seconds, your window will reset.
+     *
+     * We attach the following headers to responses to help you track your rate limit use:
+     *
+     * X-Discogs-Ratelimit: The total number of requests you can make in a one minute window.
+     *
+     * X-Discogs-Ratelimit-Used : The number of requests you’ve made in your existing rate limit window.
+     *
+     * X-Discogs-Ratelimit-Remaining: The number of remaining requests you are able to make
+     * in the existing rate limit window.
+     *
+     * Your application should take our global limit into account and throttle its requests locally.
+     *
+     * In the future, we may update these rate limits at any time in order to provide service for all users.
+     *
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -197,12 +222,16 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
         $logger->debug('Processing chunks.');
 
+        // Iterate chunks
         foreach ($chunks as $index => $chunk) {
             // Each chunk contains a list of items to process.
 
             $timeStartCurrentChunk = time();
             $logger->debug(sprintf('RL: last timeRateLimit: %d.', $timeRateLimit));
             $logger->debug(sprintf('RL: timeStartCurrentChunk (%d): %d.', $index, $timeStartCurrentChunk));
+
+            // Check rate limits.
+            $logger->debug(sprintf('Handling rate limiting; chunk %d.', $index));
 
             // Check how many seconds have passed since last chunk processing.
             $elapsedTime = $timeStartCurrentChunk - $timeRateLimit;
@@ -221,10 +250,6 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                 $logger->debug(sprintf('RL: elapsedTime under cutoff, waiting: %d seconds.', $waitingTime));
                 sleep($waitingTime);
             }
-
-            // Set new time for the next chunk. This is the actual start time of the current chunk, after waiting.
-            $timeRateLimit = time();
-            $logger->debug(sprintf('RL: updated timeRateLimit after chunk %d: %d.', $index, $timeRateLimit));
 
             $logger->debug(sprintf('Creating requests; chunk %d, %d items.', $index, count($chunk)));
             foreach ($chunk as $releaseId) {
@@ -287,10 +312,12 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
             $curlHandleIdentifiers = [];
 
-            $logger->debug(sprintf('Cleanup; chunk %d.', $index));
+            $logger->debug(sprintf('Cleanup: chunk %d.', $index));
 
-            // Check rate limits.
-            $logger->debug(sprintf('Handling rate limiting; chunk %d.', $index));
+            // Set new time for the next chunk.
+            // This is the actual end time of the current chunk.
+            $timeRateLimit = time();
+            $logger->debug(sprintf('RL: updated timeRateLimit chunk %d: %d.', $index, $timeRateLimit));
 
             // Get current time.
             $timeEndCurrentChunk = time();
