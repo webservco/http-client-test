@@ -43,6 +43,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
     private const int WAITING_TIME_ADJUSTMENT = 10;
 
     /**
+     * NEM MEGY ÉS KÉSZ.
      * https://www.discogs.com/developers#page:home,header:home-rate-limiting
      * Rate Limiting
      *
