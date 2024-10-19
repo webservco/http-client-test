@@ -6,10 +6,8 @@ namespace Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlMultiService\Discogs
 
 use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DependsOnClass;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
-use Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlMultiService\Discogs\Releases\DiscogsMulti11ReleasesTest;
 use UnexpectedValueException;
 use WebServCo\Http\Client\Service\cURL\CurlMultiService;
 
@@ -75,8 +73,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    #[DependsOnClass(DiscogsMulti11ReleasesTest::class)]
-    public function testReleasesRateLimiting(): void
+    public function testOneThousandReleasesUsingMultiWithRateLimiting(): void
     {
         $lapTimer = $this->createLapTimer();
         $lapTimer->start();
