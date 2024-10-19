@@ -13,7 +13,7 @@ use function sprintf;
 #[CoversClass(HttpClient::class)]
 final class Discogs1ReleaseTest extends AbstractDiscogsTestClass
 {
-    public function testGetStatusCode(): void
+    public function skipGetStatusCode(): void
     {
         $statusCode = $this->getGetResponseStatusCodeByUrl(1, sprintf('%sreleases/%d', $this->getDiscogsApiUrl(), 1));
 

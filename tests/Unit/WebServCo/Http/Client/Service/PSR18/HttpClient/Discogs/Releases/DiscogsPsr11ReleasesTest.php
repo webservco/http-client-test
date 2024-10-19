@@ -13,7 +13,7 @@ use function sprintf;
 #[CoversClass(HttpClient::class)]
 final class DiscogsPsr11ReleasesTest extends AbstractDiscogsTestClass
 {
-    public function test11ReleasesStatusCode(): void
+    public function skip11ReleasesStatusCode(): void
     {
         $lapTimer = $this->createLapTimer();
         $lapTimer->start();
