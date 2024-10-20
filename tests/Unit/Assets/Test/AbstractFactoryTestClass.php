@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Tests\Unit\Assets\Factory\CurlServiceFactory;
 use WebServCo\Http\Client\Contract\Service\cURL\CurlMultiServiceInterface;
+use WebServCo\Http\Client\Contract\Service\cURL\CurlServiceInterface;
 use WebServCo\Http\Client\Service\cURL\CurlMultiService;
 use WebServCo\Http\Client\Service\PSR18\HttpClient;
 use WebServCo\Log\Contract\LoggerFactoryInterface;
@@ -37,13 +38,21 @@ abstract class AbstractFactoryTestClass extends TestCase
      */
     protected function createCurlMultiService(int $timeout): CurlMultiServiceInterface
     {
+        $curlService = $this->createCurlService($timeout);
+
+        return new CurlMultiService($curlService);
+    }
+
+    /**
+     * Create CurlService
+     */
+    protected function createCurlService(int $timeout): CurlServiceInterface
+    {
         if ($this->curlServiceFactory === null) {
             $this->curlServiceFactory = new CurlServiceFactory($this->getLoggerFactory());
         }
 
-        $curlService = $this->curlServiceFactory->createCurlService($timeout);
-
-        return new CurlMultiService($curlService);
+        return $this->curlServiceFactory->createCurlService($timeout);
     }
 
     /**
@@ -53,11 +62,7 @@ abstract class AbstractFactoryTestClass extends TestCase
      */
     protected function createHttpClient(int $timeout): HttpClient
     {
-        if ($this->curlServiceFactory === null) {
-            $this->curlServiceFactory = new CurlServiceFactory($this->getLoggerFactory());
-        }
-
-        $curlService = $this->curlServiceFactory->createCurlService($timeout);
+        $curlService = $this->createCurlService($timeout);
 
         return new HttpClient($curlService);
     }

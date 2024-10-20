@@ -36,6 +36,19 @@ abstract class AbstractDiscogsTestClass extends AbstractTestClass
         return $this->configurationGetter->getString('DISCOGS_API_URL');
     }
 
+    /**
+     * @return array<int,int>
+     */
+    protected function getReleaseIds(int $numberOfItems): array
+    {
+        $data = [];
+        for ($releaseId = 1; $releaseId <= $numberOfItems; $releaseId += 1) {
+            $data[] = $releaseId;
+        }
+
+        return $data;
+    }
+
     protected function setUp(): void
     {
         $projectPath = $this->getProjectPath();

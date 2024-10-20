@@ -30,13 +30,15 @@ use function time;
 #[CoversClass(CurlMultiService::class)]
 final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTestClass
 {
+    private const int NUMBER_OF_RELEASES = 1000;
+
+    private const int TIMEOUT = 30;
+
     /**
      * Cutoff time in seconds.
      * Should be fixed to 60, but use constant to be able to easily test different values.
      */
-    private const int CUTOFF_TIME = 60;
-
-    private const int TIMEOUT = 30;
+    private const int WAITING_TIME = 60;
 
     private const int WAITING_TIME_ADJUSTMENT = 10;
 
@@ -73,7 +75,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    public function testOneThousandReleasesUsingMultiWithRateLimiting(): void
+    public function testALotOfReleasesUsingMultiWithRateLimiting(): void
     {
         $lapTimer = $this->createLapTimer();
         $lapTimer->start();
@@ -85,7 +87,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
         $curlMultiService = $this->createCurlMultiService(self::TIMEOUT);
 
         // Get list of release ids
-        $releaseIds = $this->getReleaseIds(1000);
+        $releaseIds = $this->getReleaseIds(self::NUMBER_OF_RELEASES);
         $firstReleaseId = array_shift($releaseIds);
         if (!is_int($firstReleaseId)) {
             throw new UnexpectedValueException('Invalid release id.');
@@ -120,8 +122,8 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                  *
                  * In this case we can wait 1 minute and try again from the start
                  */
-                $logger->debug(sprintf('Response code is 429, waiting %d seconds.', self::CUTOFF_TIME));
-                sleep(self::CUTOFF_TIME);
+                $logger->debug(sprintf('Response code is 429, waiting %d seconds.', self::WAITING_TIME));
+                sleep(self::WAITING_TIME);
                 $logger->debug('Trying again to get the first release.');
                 /** @todo this should be a separate recursive function, with N number of tries. */
                 $response = $this->getGetResponse(
@@ -182,7 +184,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
                 // Since the requests were made externally, we have no way to measure the elapsed time,
                 // so we need to wait a full minute.
                 /** @todo this should be solved if using shared memory to keep track of limits and time elapsed */
-                sleep(self::CUTOFF_TIME);
+                sleep(self::WAITING_TIME);
             }
         }
 
@@ -237,9 +239,9 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
 
             // We can only call the API again after enough time has passed.
             // Check elapsed time, but only if not first chunk (nothing to wait after).
-            if ($index > 0 && $elapsedTime < self::CUTOFF_TIME) {
+            if ($index > 0 && $elapsedTime < self::WAITING_TIME) {
                 // Less than cutoff time has passed, we need to wait the difference.
-                $waitingTime = self::CUTOFF_TIME - $elapsedTime;
+                $waitingTime = self::WAITING_TIME - $elapsedTime;
                 $logger->debug(sprintf('RL: waitingTime: %d', $waitingTime));
                 // Adjust
                 $waitingTime += self::WAITING_TIME_ADJUSTMENT;
@@ -329,17 +331,4 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
         $logger->info('Lap stats.', $lapTimer->getStatistics());
     }
     // @phpcs:enable
-
-    /**
-     * @return array<int,int>
-     */
-    private function getReleaseIds(int $numberOfItems): array
-    {
-        $data = [];
-        for ($releaseId = 1; $releaseId <= $numberOfItems; $releaseId += 1) {
-            $data[] = $releaseId;
-        }
-
-        return $data;
-    }
 }
