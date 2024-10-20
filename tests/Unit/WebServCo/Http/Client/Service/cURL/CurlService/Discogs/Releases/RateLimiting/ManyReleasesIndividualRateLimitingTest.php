@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Discogs\Releases\RateLimiting;
+namespace Tests\Unit\WebServCo\Http\Client\Service\cURL\CurlService\Discogs\Releases\RateLimiting;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -14,7 +14,7 @@ use function sleep;
 use function sprintf;
 
 #[CoversClass(CurlService::class)]
-final class DiscogsPsrManyReleasesRateLimitingTest extends AbstractDiscogsTestClass
+final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestClass
 {
     private const int NUMBER_OF_RELEASES = 1000;
     private const int TIMEOUT = 30;

@@ -28,7 +28,7 @@ use function time;
  * Target: use 100 releases and process all (test should not fail) despite limit of 60.
  */
 #[CoversClass(CurlMultiService::class)]
-final class DiscogsMultiManyReleasesRateLimitingTest extends AbstractDiscogsTestClass
+final class ManyReleasesMultiRateLimitingTest extends AbstractDiscogsTestClass
 {
     private const int NUMBER_OF_RELEASES = 1000;
 
