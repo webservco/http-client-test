@@ -80,8 +80,8 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
 
             // Log
             $logger->debug(sprintf('Release %d: status: %d.', $releaseId, $statusCode));
-            $logger->debug(sprintf('Release %d: ratelimit-total: %d.', $releaseId, $rateLimitTotal));
-            $logger->debug(sprintf('Release %d: ratelimit-remaining: %d.', $releaseId, $rateLimitRemaining));
+            $logger->debug(sprintf('Release %d: ratelimit-total: %s.', $releaseId, $rateLimitTotal ?? 'null'));
+            $logger->debug(sprintf('Release %d: ratelimit-remaining: %s.', $releaseId, $rateLimitRemaining ?? 'null'));
 
             unset($curlHandle);
 
