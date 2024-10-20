@@ -73,7 +73,6 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
                 $statusCode = $response->getStatusCode();
             } catch (ClientExceptionInterface $exception) {
                 $logger->error($exception->getMessage(), ['exception' => $exception]);
-                $rateLimitTotal = $rateLimitRemaining = null;
                 $statusCode = $exception->getCode();
                 /** @todo handle exception */
             }
