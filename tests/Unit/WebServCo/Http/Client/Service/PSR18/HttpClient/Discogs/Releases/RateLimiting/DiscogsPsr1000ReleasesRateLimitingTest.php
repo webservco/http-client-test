@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Discogs\Releases\RateLimiting;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
+
+use WebServCo\Http\Client\Service\cURL\CurlService;
 
 use function is_int;
 use function sleep;
 use function sprintf;
 
+#[CoversClass(CurlService::class)]
 final class DiscogsPsr1000ReleasesRateLimitingTest extends AbstractDiscogsTestClass
 {
     private const int NUMBER_OF_RELEASES = 1000;
