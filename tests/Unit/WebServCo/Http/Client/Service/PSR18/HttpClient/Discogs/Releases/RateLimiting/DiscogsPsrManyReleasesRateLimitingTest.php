@@ -14,7 +14,7 @@ use function sleep;
 use function sprintf;
 
 #[CoversClass(CurlService::class)]
-final class DiscogsPsr1000ReleasesRateLimitingTest extends AbstractDiscogsTestClass
+final class DiscogsPsrManyReleasesRateLimitingTest extends AbstractDiscogsTestClass
 {
     private const int NUMBER_OF_RELEASES = 1000;
     private const int TIMEOUT = 30;
@@ -29,7 +29,7 @@ final class DiscogsPsr1000ReleasesRateLimitingTest extends AbstractDiscogsTestCl
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
      */
-    public function testALotOfReleasesOneByOneWithRateLimiting(): void
+    public function testManyReleasesOneByOneWithRateLimiting(): void
     {
         // Log
         $logger = $this->createLogger(__FUNCTION__);

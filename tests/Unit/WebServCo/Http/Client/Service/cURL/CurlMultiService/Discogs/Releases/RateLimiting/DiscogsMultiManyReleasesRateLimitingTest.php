@@ -28,7 +28,7 @@ use function time;
  * Target: use 100 releases and process all (test should not fail) despite limit of 60.
  */
 #[CoversClass(CurlMultiService::class)]
-final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTestClass
+final class DiscogsMultiManyReleasesRateLimitingTest extends AbstractDiscogsTestClass
 {
     private const int NUMBER_OF_RELEASES = 1000;
 
@@ -75,7 +75,7 @@ final class DiscogsMulti1000ReleasesRateLimitingTest extends AbstractDiscogsTest
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    public function testALotOfReleasesUsingMultiWithRateLimiting(): void
+    public function testManyReleasesUsingMultiWithRateLimiting(): void
     {
         $lapTimer = $this->createLapTimer();
         $lapTimer->start();
