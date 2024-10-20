@@ -7,7 +7,6 @@ namespace Tests\Unit\WebServCo\Http\Client\Service\PSR18\HttpClient\Discogs\Rele
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\Unit\Assets\Test\Discogs\AbstractDiscogsTestClass;
-
 use WebServCo\Http\Client\Service\cURL\CurlService;
 
 use function is_int;
@@ -51,7 +50,9 @@ final class DiscogsPsr1000ReleasesRateLimitingTest extends AbstractDiscogsTestCl
             $logger->debug(sprintf('Process release %d.', $releaseId));
 
             if (is_int($rateLimitRemaining) && $rateLimitRemaining <= 1) {
-                $logger->debug(sprintf('ratelimit-remaining: %d. Waiting %d seconds.', $rateLimitRemaining, self::WAITING_TIME));
+                $logger->debug(
+                    sprintf('ratelimit-remaining: %d. Waiting %d seconds.', $rateLimitRemaining, self::WAITING_TIME),
+                );
                 // Rate limit reached.
                 sleep(self::WAITING_TIME);
             }
