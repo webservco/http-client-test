@@ -12,7 +12,6 @@ use WebServCo\Http\Client\Service\cURL\CurlService;
 use function count;
 use function sleep;
 use function sprintf;
-use function time;
 
 #[CoversClass(CurlService::class)]
 final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestClass
@@ -24,12 +23,6 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
 
     private const int NUMBER_OF_RELEASES = 1000;
     private const int TIMEOUT = 30;
-
-    /**
-     * Cutoff time in seconds.
-     * Should be fixed to 60, but use constant to be able to easily test different values.
-     */
-    private const int WAITING_TIME = 60;
 
     /**
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
@@ -50,46 +43,21 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
         $logger->debug(sprintf('Processing %d releases.', count($releaseIds)));
 
         // Initialize rate limit values. Use null until any value is set.
-        $rateLimitTotal = $rateLimitRemaining = null;
-
-        // Set time reference. First time the rate limit is exhausted, we check this time.
-        $timeReference = time();
+        $rateLimitRemaining = null;
 
         // Loop items
         foreach ($releaseIds as $releaseId) {
             $logger->debug(sprintf('Process release %d.', $releaseId));
 
-            $timeItemStart = time();
-
             // 0 is already status 429
             if ($rateLimitRemaining === 1) {
                 $logger->debug('Rate limit exhausted.');
 
-                // Commented out: calculate time difference to wait. Not really working
-
-                //$elapsedTime = $timeItemStart - $timeReference;
-                //$logger->debug(sprintf('elapsedTime: %d seconds.', $elapsedTime));
-
-                //$waitingTimeDifference = self::WAITING_TIME - $elapsedTime;
-                //$logger->debug(sprintf('waitingTimeDifference: %d seconds.', $waitingTimeDifference));
-
-                //$waitingTimeDifference += 1;
-                //$logger->debug(sprintf('waitingTimeDifference (adjusted): %d seconds.', $waitingTimeDifference));
-
-//                if ($waitingTimeDifference > 0) {
-//                    $waitingTimeDifference = 2;
-//                    $logger->debug(sprintf('Waiting %d seconds.', $waitingTimeDifference));
-//                    sleep($waitingTimeDifference);
-//
-//                    // Reset time reference. Next time the rate limit is exhausted, we check this time.
-//                    $timeReference = time();
-//                }
-
                 /**
-                 * This seems to work (probably since using moving time window).
                  * Do not wait 1 full minute, but just 1-2 seconds, and we get again 1-2 requests.
                  * Note: this is the first approach that actually works (all 1000 releases were processed).
                  * The other option would be to wait a full minute to reset the rate limiting.
+                 *
                  * @todo study which approach is the most efficient.
                  */
                 $logger->debug(sprintf('Waiting %d seconds.', self::DELAY_TIME));
@@ -113,9 +81,9 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
                 $statusCode = $response->getStatusCode();
 
                 $logger->debug(sprintf('Release %d: status: %d.', $releaseId, $statusCode));
-                $logger->debug(sprintf('Release %d: rateLimitTotal: %s.', $releaseId, $rateLimitTotal));
-                $logger->debug(sprintf('Release %d: ratelimitUsed: %s.', $releaseId, $ratelimitUsed));
-                $logger->debug(sprintf('Release %d: rateLimitRemaining: %s.', $releaseId, $rateLimitRemaining));
+                $logger->debug(sprintf('Release %d: rateLimitTotal: %d.', $releaseId, $rateLimitTotal));
+                $logger->debug(sprintf('Release %d: ratelimitUsed: %d.', $releaseId, $ratelimitUsed));
+                $logger->debug(sprintf('Release %d: rateLimitRemaining: %d.', $releaseId, $rateLimitRemaining));
             } catch (ClientExceptionInterface $exception) {
                 $logger->error($exception->getMessage(), ['exception' => $exception]);
                 $statusCode = $exception->getCode();
@@ -134,8 +102,6 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
 
             /** Response processing would go here. */
         }
-
-        //$timeEnd = time();
 
         $logger->debug('Complete.');
     }
