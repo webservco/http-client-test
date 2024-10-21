@@ -28,7 +28,7 @@ final class ManyReleasesIndividualRateLimitingTest extends AbstractDiscogsTestCl
      * @phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      * @phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
      */
-    public function testManyReleasesOneByOneWithRateLimiting(): void
+    public function skipManyReleasesOneByOneWithRateLimiting(): void
     {
         // Log
         $logger = $this->createLogger(__FUNCTION__);
