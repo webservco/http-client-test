@@ -226,6 +226,10 @@ final class ManyReleasesMultiRateLimitingTest extends AbstractDiscogsTestClass
         foreach ($chunks as $index => $chunk) {
             // Each chunk contains a list of items to process.
 
+            // Reset. After this the service can be re-used, going through all the steps.
+            // Makes no difference if set at the start or at the end.
+            $curlMultiService->reset();
+
             $timeStartCurrentChunk = time();
             $logger->debug(sprintf('RL: last timeRateLimit: %d.', $timeRateLimit));
             $logger->debug(sprintf('RL: timeStartCurrentChunk (%d): %d.', $index, $timeStartCurrentChunk));
