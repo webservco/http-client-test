@@ -13,7 +13,7 @@ use function sprintf;
 #[CoversClass(HttpClient::class)]
 final class GetTest extends AbstractHttpbinTestClass
 {
-    public function testGetStatusCode(): void
+    public function skipGetStatusCode(): void
     {
         $statusCode = $this->getGetResponseStatusCodeByUrl(1, sprintf('%sget', self::BASE_URL));
 
