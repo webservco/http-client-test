@@ -8,6 +8,7 @@
     "autoload" : {
         "psr-4" : {
             "Tests\\Unit\\" : "tests/Unit/",
+            "Tests\\Integration\\" : "tests/Integration/",
             "WebServCo\\" : "src/WebServCo/"
         }
     },
