@@ -18,3 +18,9 @@ composer test:dox
 ```
 
 ---
+
+## TODO
+
+- [ ] Solve: `testManyReleasesUsingMultiWithRateLimiting`;
+- [ ] Enable back all tests;
+- [ ] Move Discogs tests to an Ogger Club project;
