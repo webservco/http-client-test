@@ -33,8 +33,6 @@ abstract class AbstractFactoryTestClass extends TestCase
 
     /**
      * Create CurlMultiService.
-     *
-     * Initialized each time, however factory only once.
      */
     protected function createCurlMultiService(int $timeout): CurlMultiServiceInterface
     {
@@ -45,6 +43,8 @@ abstract class AbstractFactoryTestClass extends TestCase
 
     /**
      * Create CurlService
+     *
+     * Initialized each time, however factory only once.
      */
     protected function createCurlService(int $timeout): CurlServiceInterface
     {
@@ -57,8 +57,6 @@ abstract class AbstractFactoryTestClass extends TestCase
 
     /**
      * Create PSR-18 HTTP Client.
-     *
-     * Initialized each time, however factory only once.
      */
     protected function createHttpClient(int $timeout): HttpClient
     {
