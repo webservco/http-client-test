@@ -40,7 +40,7 @@ final class ManyReleasesMultiRateLimitingTest extends AbstractDiscogsTestClass
      */
     private const int WAITING_TIME = 60;
 
-    private const int WAITING_TIME_ADJUSTMENT = 10;
+    private const int WAITING_TIME_ADJUSTMENT = 30;
 
     /**
      * NEM MEGY ÉS KÉSZ.
