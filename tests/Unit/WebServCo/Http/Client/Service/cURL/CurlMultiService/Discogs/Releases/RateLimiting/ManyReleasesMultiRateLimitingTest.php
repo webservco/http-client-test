@@ -156,6 +156,8 @@ final class ManyReleasesMultiRateLimitingTest extends AbstractDiscogsTestClass
          * so in reality we can still make "59" requests, despite Discogs saying "60".
          *
          * Adjust rate limits: sacrifice 1 request to make sure all is OK
+         *
+         * @todo: actually, we have to do this for each response, not only the first
          */
         $ratelimitTotal -= 1;
         $ratelimitRemaining -= 1;
