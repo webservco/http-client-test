@@ -26,7 +26,7 @@
     "license" : "MIT",
     "name" : "webservco/http-client-test",
     "require": {
-        "php" : "^8.3"
+        "php" : "^8.4"
     },
     "require-dev": {
         "pds/skeleton": "^1",
@@ -35,13 +35,14 @@
         "php-parallel-lint/php-console-highlighter": "^1",
         "phpcompatibility/php-compatibility": "^9",
         "phpmd/phpmd": "^2",
-        "phpstan/phpstan-strict-rules": "^1",
-        "phpstan/phpstan-phpunit": "^1",
-        "phpstan/phpstan" : "^1",
+        "phpstan/phpstan-deprecation-rules": "^2",
+        "phpstan/phpstan-strict-rules": "^2",
+        "phpstan/phpstan-phpunit": "^2",
+        "phpstan/phpstan" : "^2",
         "phpunit/phpunit": "^10",
         "slevomat/coding-standard": "^8",
         "squizlabs/php_codesniffer" : "^3",
-        "vimeo/psalm": "^5",
+        "vimeo/psalm": "^6",
         "webservco/coding-standards": "^0",
         "webservco/component-common": "^0",
         "webservco/configuration": "^0",
@@ -65,6 +66,7 @@
             "@check:psalm",
             "@check:phan"
         ],
+        "c": "@check",
         "fix:phpcs": "vendor/bin/phpcbf --standard=vendor/webservco/component-common/.phpcs/php-coding-standard.xml --extensions=php -sp bin config public resources src tests",
         "test" : [
             "Composer\\Config::disableProcessTimeout",
