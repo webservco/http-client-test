@@ -13,6 +13,9 @@ use WebServCo\Configuration\Service\ConfigurationFileProcessor;
 use WebServCo\Configuration\Service\IniServerConfigurationContainer;
 
 use function assert;
+use function rtrim;
+
+use const DIRECTORY_SEPARATOR;
 
 abstract class AbstractDiscogsTestClass extends AbstractTestClass
 {
@@ -33,7 +36,10 @@ abstract class AbstractDiscogsTestClass extends AbstractTestClass
     {
         assert($this->configurationGetter instanceof ConfigurationGetterInterface);
 
-        return $this->configurationGetter->getString('DISCOGS_API_URL');
+        $apiUrl = $this->configurationGetter->getString('DISCOGS_API_URL');
+
+        // Make sure path contains trailing slash (trim + add back).
+        return rtrim($apiUrl, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
     /**
