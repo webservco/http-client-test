@@ -9,8 +9,11 @@ Separate project in order to avoid adding unneeded dependencies to the library p
 ## Running tests.
 
 ```shell
-composer update
+ddev restart 
 
+ddev composer update
+
+# problem: not able to run in ddev
 docker pull kennethreitz/httpbin
 docker run -p 8080:80 kennethreitz/httpbin
 
