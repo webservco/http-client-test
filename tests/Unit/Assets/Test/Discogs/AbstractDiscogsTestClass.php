@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Assets\Test\Discogs;
 
+use Override;
 use Psr\Http\Message\RequestInterface;
 use Tests\Unit\Assets\Factory\Request\Discogs\AuthenticatedRequestFactory;
 use Tests\Unit\Assets\Test\AbstractTestClass;
@@ -25,6 +26,7 @@ abstract class AbstractDiscogsTestClass extends AbstractTestClass
 
     private ?AuthenticatedRequestFactory $requestFactory = null;
 
+    #[Override]
     protected function createGetRequest(string $url): RequestInterface
     {
         assert($this->requestFactory instanceof AuthenticatedRequestFactory);
@@ -55,6 +57,7 @@ abstract class AbstractDiscogsTestClass extends AbstractTestClass
         return $data;
     }
 
+    #[Override]
     protected function setUp(): void
     {
         $projectPath = $this->getProjectPath();
@@ -75,6 +78,7 @@ abstract class AbstractDiscogsTestClass extends AbstractTestClass
         $this->requestFactory = new AuthenticatedRequestFactory($this->configurationGetter);
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         $this->requestFactory = null;

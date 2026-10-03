@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Assets\Test\Httpbin;
 
+use Override;
 use Psr\Http\Message\RequestInterface;
 use Tests\Unit\Assets\Factory\Request\Httpbin\HttpbinRequestFactory;
 use Tests\Unit\Assets\Test\AbstractTestClass;
@@ -12,6 +13,7 @@ abstract class AbstractHttpbinTestClass extends AbstractTestClass
 {
     protected const string BASE_URL = 'http://0.0.0.0:8080/';
 
+    #[Override]
     protected function createGetRequest(string $url): RequestInterface
     {
         $requestFactory = new HttpbinRequestFactory();

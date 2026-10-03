@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Assets\Factory\Request\Discogs;
 
+use Override;
 use Psr\Http\Message\RequestInterface;
 use Tests\Unit\Assets\Factory\Request\AbstractRequestFactory;
 use WebServCo\Configuration\Contract\ConfigurationGetterInterface;
@@ -17,6 +18,7 @@ final class AuthenticatedRequestFactory extends AbstractRequestFactory
         parent::__construct();
     }
 
+    #[Override]
     protected function addRequestHeaders(RequestInterface $request): RequestInterface
     {
         return $request
