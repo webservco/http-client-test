@@ -24,9 +24,6 @@ use function sprintf;
 
 use const DIRECTORY_SEPARATOR;
 
-/**
- * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
- */
 abstract class AbstractFactoryTestClass extends TestCase
 {
     protected ?CurlServiceFactory $curlServiceFactory = null;
