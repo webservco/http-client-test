@@ -44,10 +44,10 @@
         "vimeo/psalm": "^6",
         "webservco/coding-standards": "^2",
         "webservco/component-common": "^2",
-        "webservco/configuration": "^1",
-        "webservco/http": "^1",
+        "webservco/configuration": "^2",
+        "webservco/http": "^2",
         "webservco/http-client": "dev-main",
-        "webservco/stopwatch": "^1"
+        "webservco/stopwatch": "^2"
     },
     "scripts": {
         "check:lint": "vendor/bin/parallel-lint bin config public resources src tests",
